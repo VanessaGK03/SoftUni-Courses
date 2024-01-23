@@ -8,46 +8,57 @@ function arenaTier(array){
             let[gladiator, technique, skill] = info.split(' -> ');
             skill = Number(skill);
             if(gladiators.hasOwnProperty(gladiator)){
-                if(gladiators[gladiator].hasOwnProperty(technique)){
-                    if(gladiators[gladiator][technique] < skill){
+                if(gladiators[gladiator].hasOwnProperty(technique) == false || gladiators[gladiator][technique] < skill){
+                    
                         gladiators[gladiator][technique] = skill;
-                    }
-                }else{
-                    gladiators[gladiator][technique] = skill;
+                    
                 }
             }else{
-                gladiators[gladiator] = {[technique]: skill};
+                gladiators[gladiator] = {};
             }
 
         }else if(info.includes('vs')){
             let [gladiator1, gladiator2] = info.split(' vs ');
             if(gladiators.hasOwnProperty(gladiator1) && gladiators.hasOwnProperty(gladiator2)){
-                let skillpoints1 = gladiators[gladiator1];
-                let skillpoints2 = gladiators[gladiator2];
+                let a = gladiators[gladiator1];
+                let b = gladiators[gladiator2];
+
+                let techsA = Object.keys(a);
+                let techsB = Object.keys(b);
+
                 let hasCommonTechniques = false;
             
                 
-                for(let  technique in skillpoints1){
-                    if(skillpoints2.hasOwnProperty(technique)){
+                for(let  technique in techsA){
+                    if(techsB.includes(technique)){
                         hasCommonTechniques = true;
-                        break;
                     }
                 }
 
+                if(!hasCommonTechniques){
+                    continue;
+                }
                
-                if(hasCommonTechniques){
-                   let totalpoints1 = Object.values(skillpoints1).reduce((total, skill) => total + skill, 0);
-                   let  totalpoints2 = Object.values(skillpoints2).reduce((total, skill) => total + skill, 0);
-
-                    if(totalpoints1 > totalpoints2){
-                        delete gladiators.gladiator2;
-                    }else{
-                        delete gladiators.gladiator1;
-                    }
+                
+                   let totalA = 0;
+                   let  totalB = 0;
+                    
+                for(let skill of Object.values(a)){
+                    totalA += skill;
                 }
 
+                for(let skill of Object.values(b)){
+                    totalB += skill;
+                }
+
+                if(totalA > totalB){
+                    delete gladiators[gladiator1];
+                }else{
+                    delete gladiators[gladiator2];
+                }
                 
-                
+            }else{
+                continue;
             }
         }else if( info === "Ave Cesar"){
             break;
@@ -55,24 +66,48 @@ function arenaTier(array){
     }
 
     
-    let sortedGladiators = Object.keys(gladiators).sort((a, b) => {
-        let skillA = Object.values(gladiators[a]).reduce((total, skill) => total + skill, 0);
-        let skillB = Object.values(gladiators[b]).reduce((total, skill) => total + skill, 0);
-        if (skillB !== skillA) {
-          return skillB - skillA;
-        }
-        return a.localeCompare(b);
-      });
+    let sortedGladiators = Object.entries(gladiators).sort(compareSkill);
 
-      for (let gladiator of sortedGladiators) {
-        console.log(`${gladiator}: ${Object.values(gladiators[gladiator]).reduce((total, skill) => total + skill, 0)} skill`);
-        let sortedTechniques = Object.keys(gladiators[gladiator]).sort((a, b) =>
-          gladiators[gladiator][b] - gladiators[gladiator][a]
-        );
-        for (let technique of sortedTechniques) {
-          console.log(`- ${technique} <!> ${gladiators[gladiator][technique]}`);
+    for (let [gladiator, techs] of sortedGladiators) {
+        console.log(gladiator);
+
+        let total = 0;
+        for(let skill of Object.values(techs)){
+            total += skill;
         }
+        console.log(`${gladiator}:${total} skill`);
+
+        let sortedTechs = Object.entries(techs).sort(compareTech);
+
+        for(let [tech, skill] of sortedTechs){
+            console.log(` - ${tech} <!> ${skill}`);
+        }
+       
       }
+
+
+    function compareSkill(a, b){
+        
+        
+        let totalA = 0;
+        let totalB = 0;
+
+        for(let skill of Object.values(a)){
+            totalA += skill;
+        }
+
+        for(let skill of Object.values(b)){
+            totalB += skill;
+        }
+
+        return (totalB - totalA) || a[0].localeCompare(b[0]);
+        //console.log(totalA, totalB);
+    }
+
+    function compareTech(a, b){
+        return b[1] - a[1] || a[0].localeCompare(b[0]);
+    }
+    
 }
 
 /*arenaTier([
